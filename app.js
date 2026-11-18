@@ -533,7 +533,7 @@
       case 'holding-del': { if (confirm('이 종목을 삭제할까요?')) { S.removeHolding(sh.draft.id); closeSheet(); } break; }
       case 'settings': if (sh) { sh = { kind: 'settings' }; renderSheet(); } else openSheet({ kind: 'settings' }); break;
       case 'theme': S.setSetting('theme', el.dataset.v); applyTheme(); renderSheet(); break;
-      case 'login': { const em = $('#login-email').value.trim(), msg = $('#login-msg'); if (!em) { msg.textContent = '이메일을 입력해 주세요'; break; } msg.textContent = '보내는 중...'; try { await S.signIn(em); msg.className = 'small up'; msg.textContent = em + ' 로 로그인 링크를 보냈어요. 메일의 링크를 이 기기에서 열어 주세요.'; } catch (err) { msg.className = 'small dn'; msg.textContent = '실패: ' + (err.message || err); } break; }
+      case 'login': { const em = $('#login-email').value.trim(), msg = $('#login-msg'); if (!em) { msg.textContent = '이메일을 입력해 주세요'; break; } msg.textContent = '보내는 중...'; try { await S.signIn(em); msg.className = 'small up'; msg.textContent = em + ' 로 로그인 링크를 보냈어요. 네이버 메일은 스팸메일함으로 갈 수 있어요. 메일의 링크를 이 기기의 브라우저에서 열어 주세요.'; } catch (err) { msg.className = 'small dn'; msg.textContent = '실패: ' + (err.message || err); } break; }
       case 'logout': await S.signOut(); renderSheet(); break;
       case 'sync': { const ok = await S.fullSync(); toast(ok ? '동기화했어요' : '동기화에 실패했어요'); if (sh && sh.kind === 'settings') renderSheet(); break; }
       case 'rule-del': S.removeRule(el.dataset.k); renderSheet(); break;

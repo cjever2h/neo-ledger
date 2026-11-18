@@ -91,7 +91,7 @@
   function barsChart(groups, seriesColors, opt) {
     opt = opt || {};
     const W = narrow() ? 340 : 560, H = opt.h || 170, L = 34, B = 20, T = 14;
-    const maxV = Math.max(1, ...groups.flatMap(g => g.values));
+    const maxV = Math.max(10000, ...groups.flatMap(g => g.values));
     const tk = ticks(maxV), top = tk[tk.length - 1];
     const gw = (W - L) / groups.length, bw = Math.min(26, gw / (groups[0].values.length + 1));
     let g = '';
@@ -109,7 +109,7 @@
   }
   function areaChart(cur, prev, days, budget) {
     const W = narrow() ? 340 : 560, H = 190, L = 40, B = 20, T = 12, R = 10;
-    const all = cur.concat(prev).filter(v => v != null); const maxV = Math.max(1, ...all, budget || 0);
+    const all = cur.concat(prev).filter(v => v != null); const maxV = Math.max(10000, ...all, budget || 0);
     const tk = ticks(maxV), top = tk[tk.length - 1];
     const X = i => L + (W - L - R) * (i / Math.max(1, days - 1)), Y = v => T + (H - T - B) * (1 - v / top);
     let g = '';

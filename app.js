@@ -196,7 +196,7 @@
     if (f.q) { const q = f.q.toLowerCase(); list = list.filter(t => (t.merchant + ' ' + t.memo + ' ' + t.category + ' ' + t.account).toLowerCase().includes(q)); }
     const s = sums(list);
     const catOpts = '<option value="all">모든 카테고리</option>' + ALLCATS.map(c => '<option' + (f.cat === c ? ' selected' : '') + '>' + c + '</option>').join('');
-    let h = '<div class="pagehead"><h1>거래</h1>' + monthNav('month') + '<span class="sp"></span><div class="seg neutral"><button class="' + (f.view === 'list' ? 'on' : '') + '" data-a="txview" data-v="list">목록</button><button class="' + (f.view === 'cal' ? 'on' : '') + '" data-a="txview" data-v="cal">달력</button></div></div>';
+    let h = '<div class="pagehead"><h1>거래</h1>' + monthNav('month') + '<span class="sp"></span><label class="btn sm noprint">카드 내역 가져오기<input type="file" class="stmt" accept=".xls,.xlsx,.csv,.html,.htm" multiple hidden></label><div class="seg neutral"><button class="' + (f.view === 'list' ? 'on' : '') + '" data-a="txview" data-v="list">목록</button><button class="' + (f.view === 'cal' ? 'on' : '') + '" data-a="txview" data-v="cal">달력</button></div></div>';
     h += '<div class="filters"><input type="search" placeholder="가맹점·메모 검색" value="' + esc(f.q) + '" data-bind="q"><select data-bind="type"><option value="all">전체</option>' + Object.keys(TYPES).map(k => '<option value="' + k + '"' + (f.type === k ? ' selected' : '') + '>' + TYPES[k] + '</option>').join('') + '</select><select data-bind="cat">' + catOpts + '</select></div>';
     h += '<div class="small muted" style="margin:-4px 2px 10px">' + s.n + '건 · 수입 <span class="up num">' + won(s.income) + '</span> · 지출 <span class="num">' + won(s.expense) + '</span> · 투자 <span class="num" style="color:var(--v)">' + won(s.invest) + '</span></div>';
     if (f.view === 'cal') {
@@ -391,7 +391,7 @@
       + '<div class="field"><label>가맹점 / 내용</label><input id="f-merchant" list="merchants" autocomplete="off" placeholder="예: 스타벅스" value="' + esc(d.merchant) + '"><datalist id="merchants">' + [...new Set(txs().slice(-300).map(t => t.merchant))].slice(-60).map(m => '<option value="' + esc(m) + '">').join('') + '</datalist></div>'
       + '<div class="row2"><div class="field"><label>카테고리</label><select id="f-cat">' + catOptions(d.type, d.category) + '</select></div><div class="field"><label>결제수단 / 계좌</label><input id="f-account" placeholder="예: 신한카드" value="' + esc(d.account) + '"></div></div>'
       + '<div class="field"><label>메모</label><input id="f-memo" value="' + esc(d.memo) + '"></div>'
-      + (d.type !== 'income' || true ? '<div class="field" id="rulebox"><label style="display:flex;gap:6px;align-items:center;font-weight:500"><input type="checkbox" id="f-rule" style="width:auto"' + (editing ? ' checked' : '') + '> 이 가맹점은 앞으로 이 카테고리로 자동 분류</label><input id="f-rulekw" placeholder="인식할 키워드 (예: 스타벅스)" value="' + esc(ruleKeyword(d.merchant)) + '"></div>' : '');
+      + (editing ? '<div class="field"><label style="display:flex;gap:6px;align-items:center;font-weight:500"><input type="checkbox" id="f-all" style="width:auto"> 같은 가맹점(' + esc(d.merchant) + ')의 다른 내역도 모두 이 카테고리로 변경</label></div>' : '') + (d.type !== 'income' || true ? '<div class="field" id="rulebox"><label style="display:flex;gap:6px;align-items:center;font-weight:500"><input type="checkbox" id="f-rule" style="width:auto"' + (editing ? ' checked' : '') + '> 이 가맹점은 앞으로 이 카테고리로 자동 분류</label><input id="f-rulekw" placeholder="인식할 키워드 (예: 스타벅스)" value="' + esc(ruleKeyword(d.merchant)) + '"></div>' : '');
   }
   const ruleKeyword = m => { const w = String(m || '').replace(/\(.*?\)/g, '').trim().split(/\s+/)[0] || ''; return w.length >= 2 && !/미확인/.test(w) ? w : ''; };
   function readForm(d) {
@@ -457,7 +457,7 @@
       + '<div class="settings-sec"><h4>월 예산 (카테고리별, 원)</h4>' + ex.map(c => '<div class="budrow"><span class="small">' + c + '</span><input inputmode="numeric" data-bud="' + c + '" placeholder="미설정" value="' + (S.data.budgets[c] ? S.data.budgets[c].toLocaleString('ko-KR') : '') + '"></div>').join('') + '</div>'
       + '<div class="settings-sec"><h4>자동 분류 규칙 (내가 가르친 것)</h4>' + (S.data.rules.length ? S.data.rules.map(r => '<div class="rulerow"><span>' + esc(r.keyword) + ' → <b>' + esc(r.category) + '</b></span><button class="btn sm" data-a="rule-del" data-k="' + esc(r.keyword) + '">삭제</button></div>').join('') : '<div class="hint">거래를 수정해서 카테고리를 바꾸면 이곳에 규칙이 쌓여요.</div>') + '</div>'
       + '<div class="settings-sec"><h4>자동 입력 연결</h4><ul class="hint" style="padding-left:18px;margin:0"><li><b>크롬 확장 프로그램</b>: 웹페이지에서 결제 내역을 드래그 후 우클릭 → "가계부에 보내기". 영수증 이미지는 이미지 우클릭으로 보내요. <a href="ledger-extension.zip" download>확장 프로그램 받기 (zip)</a> → 압축을 풀고 chrome://extensions 에서 개발자 모드 → "압축해제된 확장 프로그램 로드".</li><li><b>휴대폰</b>: 홈 화면에 앱을 설치하면(공유 → 홈 화면에 추가) 문자·알림을 복사해 "문자·알림" 탭에 붙여넣거나, 안드로이드에서는 공유 메뉴로 바로 보낼 수 있어요.</li></ul>' + (deferredInstall ? '<div style="margin-top:8px"><button class="btn sm" data-a="install">앱 설치</button></div>' : '') + '</div>'
-      + '<div class="settings-sec"><h4>데이터</h4><div class="rowflex"><button class="btn sm" data-a="export-json">백업(JSON)</button><button class="btn sm" data-a="export-csv">CSV 내보내기</button><label class="btn sm">백업 불러오기<input type="file" id="imp" accept=".json,application/json" hidden></label><button class="btn sm" data-a="sample">예시 데이터 넣기</button><button class="btn sm" data-a="sample-clear">예시 데이터 지우기</button><button class="btn sm danger" data-a="clear">전체 삭제</button></div></div>';
+      + '<div class="settings-sec"><h4>데이터</h4><div class="rowflex"><button class="btn sm" data-a="export-json">백업(JSON)</button><button class="btn sm" data-a="export-csv">CSV 내보내기</button><label class="btn sm">카드 내역 가져오기<input type="file" class="stmt" accept=".xls,.xlsx,.csv,.html,.htm" multiple hidden></label><label class="btn sm">백업 불러오기<input type="file" id="imp" accept=".json,application/json" hidden></label><button class="btn sm" data-a="sample">예시 데이터 넣기</button><button class="btn sm" data-a="sample-clear">예시 데이터 지우기</button><button class="btn sm danger" data-a="clear">전체 삭제</button></div></div>';
   }
   let deferredInstall = null;
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; });
@@ -522,9 +522,11 @@
       case 'f-type': { const d = currentDraft(); readForm(d); d.type = el.dataset.v; d.category = P.CATS[d.type].includes(d.category) ? d.category : P.CATS[d.type][P.CATS[d.type].length - 1]; renderSheet(); break; }
       case 'manual-save': { const d = readForm(sh.draft); if (!d.amount) { toast('금액을 입력해 주세요'); break; } if (!d.merchant) d.merchant = d.category; saveRuleFromForm(d, null); registerItems([Object.assign({}, d)]); closeSheet(); break; }
       case 'receipt-save': { const d = readForm(sh.receipt.draft); if (!d.amount) { toast('금액을 입력해 주세요'); break; } d.needs_review = false; saveRuleFromForm(d, null); registerItems([Object.assign({}, d)]); closeSheet(); break; }
-      case 'tx-open': { const t = txs().find(x => x.id === el.dataset.id); if (t) openSheet({ kind: 'edit', id: t.id, draft: Object.assign({}, t), orig: t.category }); break; }
+      case 'tx-open': { const t = txs().find(x => x.id === el.dataset.id); if (t) openSheet({ kind: 'edit', id: t.id, draft: Object.assign({}, t), orig: t.category, origMerchant: t.merchant }); break; }
       case 'tx-ok': e.stopPropagation(); S.updateTx(el.dataset.id, { needs_review: false }); break;
-      case 'edit-save': { const d = readForm(sh.draft); if (!d.amount) { toast('금액을 입력해 주세요'); break; } saveRuleFromForm(d, sh.orig); S.updateTx(sh.id, { type: d.type, amount: d.amount, occurred_at: d.occurred_at, merchant: d.merchant, category: d.category, account: d.account, memo: d.memo, needs_review: false }); closeSheet(); toast('저장했어요'); break; }
+      case 'edit-save': { const d = readForm(sh.draft); if (!d.amount) { toast('금액을 입력해 주세요'); break; } saveRuleFromForm(d, sh.orig); S.updateTx(sh.id, { type: d.type, amount: d.amount, occurred_at: d.occurred_at, merchant: d.merchant, category: d.category, account: d.account, memo: d.memo, needs_review: false });
+        let more = 0; if (($('#f-all') || {}).checked && d.category !== sh.orig) { txs().filter(x => x.id !== sh.id && x.merchant === sh.origMerchant && x.type === d.type).forEach(x => { S.updateTx(x.id, { category: d.category, needs_review: false }); more++; }); }
+        closeSheet(); toast(more ? '저장했어요 · 같은 가맹점 ' + more + '건도 변경' : '저장했어요'); break; }
       case 'edit-del': { const row = S.removeTx(sh.id); closeSheet(); if (row) toast('삭제했어요', '되돌리기', () => S.restoreTx(row)); break; }
       case 'holding-open': { const h = S.data.holdings.find(x => x.id === el.dataset.id); openSheet({ kind: 'holding', draft: h ? Object.assign({}, h) : { ticker: '', name: '', currency: 'KRW', qty: '', avg_price: '', cur_price: '', memo: '' } }); break; }
       case 'holding-save': { const g = id => $('#' + id).value.trim(); const d = Object.assign(sh.draft, { ticker: g('h-ticker').toUpperCase(), name: g('h-name'), currency: g('h-cur'), qty: g('h-qty'), avg_price: g('h-avg'), cur_price: g('h-cur-price'), memo: g('h-memo') }); if (!d.ticker) { toast('티커를 입력해 주세요'); break; } S.saveHolding(d); closeSheet(); break; }
@@ -556,6 +558,7 @@
   });
   document.addEventListener('compositionend', e => { const b = e.target.dataset && e.target.dataset.bind; if (b === 'q') { st.f.q = e.target.value; st.f.limit = 120; render(); } });
   document.addEventListener('change', e => {
+    if (e.target.classList && e.target.classList.contains('stmt') && e.target.files.length) { importStatements([...e.target.files]); e.target.value = ''; return; }
     if (e.target.id === 'imp' && e.target.files[0]) { const f = e.target.files[0]; f.text().then(t => { try { const n = S.importJson(t); toast(n + '건을 불러왔어요'); } catch (err) { toast('불러오기 실패: ' + err.message); } }); }
     const b = e.target.dataset && e.target.dataset.bind; if (b && e.target.tagName === 'SELECT') { st.f[b] = e.target.value; render(); }
   });
@@ -585,6 +588,69 @@
   const mq = window.matchMedia('(prefers-color-scheme: light)');
   function applyTheme() { const t = S.data.settings.theme || 'auto'; const eff = t === 'auto' ? (mq.matches ? 'light' : 'dark') : t; document.documentElement.dataset.theme = eff; const m = document.querySelector('meta[name=theme-color]'); if (m) m.content = eff === 'dark' ? '#0a0f1c' : '#f2f5fa'; }
   mq.addEventListener && mq.addEventListener('change', applyTheme);
+
+
+  // ---------- 카드 내역 파일 가져오기 (현대카드 등 HTML/엑셀/CSV) ----------
+  const ISSUERS = [[/hyundai|현대/i, '현대카드'], [/shinhan|신한/i, '신한카드'], [/samsung|삼성/i, '삼성카드'], [/kookmin|국민|\bkb/i, 'KB국민카드'], [/lotte|롯데/i, '롯데카드'], [/hana|하나/i, '하나카드'], [/woori|우리/i, '우리카드'], [/nonghyup|농협|\bnh/i, 'NH농협카드'], [/\bbc/i, 'BC카드']];
+  function cleanMerchant(s) {
+    let m = String(s || '').replace(/\s+/g, ' ').trim();
+    if (/\s-\s/.test(m)) m = m.split(/\s-\s/).slice(1).join(' - ');
+    m = m.replace(/\(주\)|㈜|주식회사/g, '').replace(/\s+/g, ' ').trim();
+    return m || String(s || '').trim();
+  }
+  async function readStatementRows(file) {
+    const buf = await file.arrayBuffer();
+    let text = new TextDecoder('utf-8').decode(buf);
+    if (text.includes('\ufffd')) { try { text = new TextDecoder('euc-kr').decode(buf); } catch (e) { } }
+    if (/<table/i.test(text)) {
+      const doc = new DOMParser().parseFromString(text, 'text/html');
+      return [...doc.querySelectorAll('tr')].map(tr => [...tr.children].filter(c => /^t[dh]$/i.test(c.tagName)).map(c => c.textContent.replace(/\s+/g, ' ').trim()));
+    }
+    if (!/[\x00-\x08]/.test(text.slice(0, 2000)) && /[,\t]/.test(text)) {
+      const delim = (text.match(/\t/g) || []).length > (text.match(/,/g) || []).length ? '\t' : ',';
+      return text.split(/\r?\n/).filter(l => l.trim()).map(line => { const out = []; let cur = '', q = false; for (const ch of line) { if (ch === '"') q = !q; else if (ch === delim && !q) { out.push(cur.trim()); cur = ''; } else cur += ch; } out.push(cur.trim()); return out; });
+    }
+    await loadScript('https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js');
+    const wb = XLSX.read(buf, { type: 'array' });
+    return XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: '' });
+  }
+  function parseStatement(rows, filename) {
+    const hi = rows.findIndex(r => r.some(c => /이용일|거래일|승인일|사용일/.test(c)) && r.some(c => /가맹점|이용처|사용처|적요|내용/.test(c)));
+    if (hi < 0) throw new Error('이용일·가맹점 열을 찾지 못했어요');
+    const h = rows[hi], col = re => h.findIndex(c => re.test(c));
+    const iD = col(/이용일|거래일|승인일|사용일/), iM = col(/가맹점|이용처|사용처|적요|내용/), iC = col(/이용카드|카드/), iP = col(/결제원금/);
+    const iA = iP >= 0 ? iP : col(/이용금액|승인금액|거래금액|금액/), iI = col(/할부/);
+    let issuer = ''; for (const [re, nm] of ISSUERS) if (re.test(filename)) { issuer = nm; break; }
+    const items = [];
+    for (const r of rows.slice(hi + 1)) {
+      const dm = String(r[iD] || '').match(/(\d{4})\D+(\d{1,2})\D+(\d{1,2})/); if (!dm) continue;
+      const amt = parseInt(String(r[iA] || '').replace(/[^\d-]/g, ''), 10) || 0; if (!amt) continue;
+      const merchant = cleanMerchant(r[iM]); const neg = amt < 0;
+      const cat = P.categorize(merchant, neg ? 'income' : 'expense', S.data.rules);
+      const inst = iI >= 0 ? String(r[iI] || '').trim() : '';
+      const card = iC >= 0 ? String(r[iC] || '').replace(/^본인[A-Z]?\s*/, '').trim() : '';
+      items.push({ occurred_at: new Date(+dm[1], +dm[2] - 1, +dm[3], 12, 0).toISOString(), type: neg ? 'income' : cat.type, amount: Math.abs(amt), merchant, category: neg ? '환불' : cat.category, account: (issuer + ' ' + card).trim(), memo: inst ? '할부 ' + inst : '', source: 'import', raw_text: r.join(' | ').slice(0, 300), needs_review: (!neg && cat.category === '기타' && !cat.learned) || !!inst });
+    }
+    return items;
+  }
+  async function importStatements(files) {
+    const items = []; const errs = [];
+    for (const f of files) { try { const n0 = items.length; items.push(...parseStatement(await readStatementRows(f), f.name)); if (items.length === n0) errs.push(f.name + ': 내역 없음'); } catch (e) { errs.push(f.name + ': ' + (e.message || e)); } }
+    const key = t => dayOf(t.occurred_at) + '|' + t.merchant + '|' + t.amount + '|' + t.type;
+    const have = {}; txs().filter(t => t.source === 'import').forEach(t => { const k = key(t); have[k] = (have[k] || 0) + 1; });
+    const seen = {}; let dup = 0, added = 0, review = 0, minD = null, maxD = null, total = 0;
+    for (const it of items) {
+      const k = key(it); seen[k] = (seen[k] || 0) + 1;
+      if (seen[k] <= (have[k] || 0)) { dup++; continue; }
+      S.addTx(it); added++; if (it.needs_review) review++; if (it.type === 'expense') total += it.amount;
+      if (!minD || it.occurred_at < minD) minD = it.occurred_at; if (!maxD || it.occurred_at > maxD) maxD = it.occurred_at;
+    }
+    if (maxD) { st.ym = ymOf(maxD); st.tab = 'tx'; st.f.day = null; st.f.cat = 'all'; st.f.type = 'all'; st.f.q = ''; }
+    closeSheet(); render();
+    toast(added ? added + '건 등록 (' + dayOf(minD).slice(5).replace('-', '/') + '~' + dayOf(maxD).slice(5).replace('-', '/') + ', 지출 ' + won(total) + ')' + (dup ? ' · 중복 ' + dup + '건 제외' : '') + (review ? ' · 확인 필요 ' + review + '건' : '') : (dup ? '이미 등록된 내역이에요 (' + dup + '건)' : '가져올 내역이 없어요'), null, null, 9000);
+    if (errs.length) setTimeout(() => toast(esc(errs.join(' / '))), 300);
+    return { added, dup, review, errs };
+  }
 
   // ---------- 외부 입력 (확장 프로그램 / 공유) ----------
   window.addEventListener('message', async e => {
